@@ -1,19 +1,18 @@
 package main
 
 import (
-	"fmt"
-	"github.com/julienschmidt/httprouter"
-	"log"
-	"net/http"
+	"github.com/bobolord/obsidian-server-backend/controllers"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	router := httprouter.New()
-	router.GET("/", Index)
 
-	log.Fatal(http.ListenAndServe(":3000", router))
-}
+	router := gin.Default()
 
-func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	fmt.Fprint(w, "Hello World!")
+	index := router.Group("/")
+	{
+		index.GET("/", controllers.GetIndex)
+	}
+
+	router.Run(":3001")
 }
