@@ -26,7 +26,9 @@ func CORSMiddleware() gin.HandlerFunc {
 }
 
 func main() {
-	controllers.Main()
+	db := controllers.Main()
+	defer db.Close()
+
 	router := gin.New()
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())

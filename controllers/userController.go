@@ -43,7 +43,11 @@ func RegisterUser(c *gin.Context) {
 		fmt.Print("gg", err)
 	} else {
 		user := userTable{Email: loginCmd.Email, Password: hashedPassword}
-		db.Debug().Table("users").Create(&user)
+		if db.Debug().Table("users").Create(&user).Error != nil {
+			c.JSON(403, gin.H{"message": "Entered email ID is already registered", "errorIn": "email"})
+			return
+		}
+
 		c.JSON(http.StatusOK, "succesfully added user")
 	}
 }
