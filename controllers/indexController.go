@@ -9,10 +9,11 @@ import (
 )
 
 var db *gorm.DB
+var err error
 
-func main() {
-	db, err := gorm.Open("postgres", "host=localhost port=5432 user=sreedeep dbname=sreedeep password=postgres123")
-	defer db.Close()
+func Main() {
+	db, err = gorm.Open("postgres", "host=localhost port=5432 user=sreedeep dbname=sreedeep password=postgres123")
+	// defer db.Close()
 	if err != nil {
 		panic(err)
 	} else {

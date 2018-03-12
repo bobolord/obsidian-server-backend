@@ -5,8 +5,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -20,12 +18,6 @@ type userTable struct {
 }
 
 func CheckUserLogin(c *gin.Context) {
-	db, err := gorm.Open("postgres", "host=localhost port=5432 user=sreedeep dbname=sreedeep password=postgres123")
-	defer db.Close()
-	if err != nil {
-		panic(err)
-	}
-
 	var loginCmd loginCommand
 	c.BindJSON(&loginCmd)
 	var user userTable
@@ -33,27 +25,19 @@ func CheckUserLogin(c *gin.Context) {
 	if !db.Table("users").Where("email = ?", loginCmd.Email).First(&user).RecordNotFound() {
 		var success = bcrypt.CompareHashAndPassword(user.Password, []byte(loginCmd.Password))
 		if success != nil {
-			c.JSON(http.StatusOK, "Wrong password")
+			c.JSON(http.StatusBadRequest, gin.H{"message": "Wrong password", "errorIn": "password"})
+
 		} else {
 			c.JSON(http.StatusOK, "Succesfully logged in")
 		}
 	} else {
-		c.JSON(http.StatusOK, "User doesn't exist")
+		c.JSON(403, gin.H{"message": "Entered email ID isn't registered", "errorIn": "email"})
 	}
 }
 
 func RegisterUser(c *gin.Context) {
-	db, err := gorm.Open("postgres", "host=localhost port=5432 user=sreedeep dbname=sreedeep password=postgres123")
-	defer db.Close()
-	if err != nil {
-		panic(err)
-	} else {
-		fmt.Println("success")
-	}
-
 	var loginCmd loginCommand
 	c.BindJSON(&loginCmd)
-
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(loginCmd.Password), bcrypt.DefaultCost)
 	if err != nil {
 		fmt.Print("gg", err)

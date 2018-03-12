@@ -1,13 +1,13 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/bobolord/obsidian-server-backend/controllers"
 	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
+
+// var db *gorm.DB
+// var err error
 
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -26,18 +26,9 @@ func CORSMiddleware() gin.HandlerFunc {
 }
 
 func main() {
-
-	db, err := gorm.Open("postgres", "host=localhost port=5432 user=sreedeep dbname=sreedeep password=postgres123")
-	defer db.Close()
-
-	if err != nil {
-		fmt.Println("error connecting to postgresql", err)
-	}
-
+	controllers.Main()
 	router := gin.New()
 	router.Use(gin.Logger())
-
-	// Recovery middleware recovers from any panics and writes a 500 if there was one.
 	router.Use(gin.Recovery())
 	router.Use(CORSMiddleware())
 	index := router.Group("/")
