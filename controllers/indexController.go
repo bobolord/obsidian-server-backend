@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -12,12 +12,13 @@ var db *gorm.DB
 var err error
 
 func Main() *gorm.DB {
-	db, err = gorm.Open("postgres", "host=localhost port=5432 user=sreedeep dbname=server-status-app password=postgres123")
+
+	db, err = gorm.Open("postgres", "host=localhost port=5432 user=sreedeep dbname=server_status_app password=postgres123")
 	// defer db.Close()
 	if err != nil {
 		panic(err)
 	} else {
-		fmt.Println("success")
+		log.Print("failed to connect to database")
 	}
 	return db
 }
