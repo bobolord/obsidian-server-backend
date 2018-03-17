@@ -13,7 +13,7 @@ func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "http://127.0.0.1:8090")
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-Skip-Interceptor, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT")
 
 		if c.Request.Method == "OPTIONS" {
@@ -37,15 +37,22 @@ func CsrfMiddleware() gin.HandlerFunc {
 			} else {
 				fmt.Println("x-xsrf nil", csrfToken.Value, c.Request.Header["X-Csrf-Token"][0])
 			}
+		} else if c.Request != nil {
+			if c.Request.URL.Path != "/gettoken" {
+				fmt.Println("false")
+			} else {
+				fmt.Println("true")
+				http.SetCookie(c.Writer, &http.Cookie{
+					Name:     "XSRF-TOKEN",
+					Value:    "hello",
+					MaxAge:   100000,
+					Path:     "/",
+					Domain:   "127.0.0.1",
+					Secure:   false,
+					HttpOnly: false})
+			}
 		} else {
-			http.SetCookie(c.Writer, &http.Cookie{
-				Name:     "XSRF-TOKEN",
-				Value:    "hello",
-				MaxAge:   100000,
-				Path:     "/",
-				Domain:   "127.0.0.1",
-				Secure:   false,
-				HttpOnly: false})
+			fmt.Println("fail")
 		}
 		c.Next()
 	}
@@ -74,6 +81,7 @@ func main() {
 	index := router.Group("/")
 	{
 		index.GET("/", controllers.GetIndex)
+		index.GET("/gettoken")
 	}
 
 	user := router.Group("/user")
