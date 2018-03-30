@@ -15,7 +15,7 @@ import (
 var db *gorm.DB
 var err error
 
-type Runs struct {
+type Dbms_Config_Struct struct {
 	Dbms     string `yaml:"dbms,omitempty"`
 	Host     string `yaml:"host,omitempty"`
 	Port     string `yaml:"port,omitempty"`
@@ -24,24 +24,23 @@ type Runs struct {
 	Password string `yaml:"password,omitempty"`
 }
 
-type Document struct {
-	Runs []Runs `yaml:"runs,omitempty"`
+type Config struct {
+	Dbms_Config Dbms_Config_Struct `yaml:"dbms_Config,omitempty"`
 }
 
 func Main() *gorm.DB {
-	var document Document
+	var config Config
 	reader, err := os.Open("config.yml")
 	if err != nil {
 		log.Fatal(err)
 	}
 	buf, _ := ioutil.ReadAll(reader)
-	yaml.Unmarshal(buf, &document)
-	if err := yaml.Unmarshal(buf, &document); err != nil {
+	yaml.Unmarshal(buf, &config)
+	if err := yaml.Unmarshal(buf, &config); err != nil {
 		fmt.Print(err)
 		os.Exit(1)
 	}
-	fmt.Println("aaaaaaaaaaaaaaaa", document.Runs[0].Dbms)
-	db, err = gorm.Open(document.Runs[0].Dbms, "host="+document.Runs[0].Host+" port="+document.Runs[0].Port+" user="+document.Runs[0].Username+" dbname="+document.Runs[0].Database+" password="+document.Runs[0].Password)
+	db, err = gorm.Open(config.Dbms_Config.Dbms, "host="+config.Dbms_Config.Host+" port="+config.Dbms_Config.Port+" user="+config.Dbms_Config.Username+" dbname="+config.Dbms_Config.Database+" password="+config.Dbms_Config.Password)
 
 	if err != nil {
 		panic(err)
