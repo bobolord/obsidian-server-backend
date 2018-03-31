@@ -3,9 +3,7 @@ package controllers
 import (
 	"fmt"
 	"net/http"
-	"time"
 
-	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -29,29 +27,12 @@ func CheckUserLogin(c *gin.Context) {
 	if !db.Table("users").Where("email = ?", loginCmd.Email).First(&user).RecordNotFound() {
 		var success = bcrypt.CompareHashAndPassword(user.Password, []byte(loginCmd.Password))
 		if success != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "Wrong password", "errorIn": "password"})
+			c.JSON(http.StatusUnauthorized, gin.H{"message": "Wrong password", "errorIn": "password"})
 		} else {
 			c.JSON(http.StatusOK, "Succesfully logged in")
 		}
 	} else {
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-			"foo": "sreedeep",
-			"nbf": time.Now().Unix(),
-		})
-		tokenString, err := token.SignedString(hmacSampleSecret)
-		if err == nil {
-			http.SetCookie(c.Writer, &http.Cookie{
-				Name:     "JWT-TOKEN",
-				Value:    tokenString,
-				MaxAge:   100000,
-				Path:     "/",
-				Domain:   "127.0.0.1",
-				Secure:   false,
-				HttpOnly: false})
-			c.JSON(200, gin.H{"message": "Entered email ID isn't registered", "errorIn": "email"})
-		}
-
-		// c.JSON(403, gin.H{"message": "Entered email ID isn't registered", "errorIn": "email"})
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Entered email ID isn't registered", "errorIn": "email"})
 	}
 
 }
