@@ -20,6 +20,8 @@ type Config_Struct struct {
 type App_Config_Struct struct {
 	Allowed_origins string `yaml:"allowed_origins,omitempty"`
 	Port            string `yaml:"port,omitempty"`
+	Domain          string `yaml:"domain,omitempty"`
+	CsrfTokenExpiry int    `yaml:"csrfTokenExpiry,omitempty"`
 }
 
 var config Config_Struct
@@ -60,9 +62,9 @@ func CsrfMiddleware() gin.HandlerFunc {
 				http.SetCookie(c.Writer, &http.Cookie{
 					Name:     "XSRF-TOKEN",
 					Value:    "hello",
-					MaxAge:   100000,
+					MaxAge:   config.App_Config.CsrfTokenExpiry,
 					Path:     "/",
-					Domain:   "127.0.0.1",
+					Domain:   config.App_Config.Domain,
 					Secure:   false,
 					HttpOnly: false})
 			}
