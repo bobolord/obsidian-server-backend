@@ -34,7 +34,6 @@ func CheckUserLogin(c *gin.Context) {
 	} else {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "Entered email ID isn't registered", "errorIn": "email"})
 	}
-
 }
 
 func RegisterUser(c *gin.Context) {
@@ -54,10 +53,15 @@ func RegisterUser(c *gin.Context) {
 	}
 }
 
-func createToken() {
+func createJwtToken() {
 
 }
 
-func refreshToken() {
+func refreshJwtToken() {
+
+}
+
+func CheckJwtToken(c *gin.Context) error {
+	return fmt.Errorf("Error extracting token: %v", err)
 
 }

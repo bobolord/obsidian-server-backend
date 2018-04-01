@@ -47,7 +47,7 @@ func CsrfMiddleware() gin.HandlerFunc {
 		if err == nil {
 			if c.Request.Header["X-Csrf-Token"] != nil {
 				if csrfToken.Value != c.Request.Header["X-Csrf-Token"][0] {
-					fmt.Println(csrfToken.Value, c.Request.Header["X-Csrf-Token"][0])
+					fmt.Println("not same csrf", csrfToken.Value, c.Request.Header["X-Csrf-Token"][0])
 				} else {
 					fmt.Println("successfully authenticated csrf", csrfToken.Value)
 				}
@@ -56,7 +56,7 @@ func CsrfMiddleware() gin.HandlerFunc {
 			}
 		} else if c.Request != nil {
 			if c.Request.URL.Path != "/gettoken" {
-				fmt.Println("false")
+				fmt.Println("error with csrf")
 			} else {
 				fmt.Println("true")
 				http.SetCookie(c.Writer, &http.Cookie{
@@ -77,10 +77,17 @@ func CsrfMiddleware() gin.HandlerFunc {
 
 func JwtMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		user := c.Request.Body
+		fmt.Println("requestURI to Jwtware", c.Request.RequestURI)
+		err := controllers.CheckJwtToken(c)
 
-		fmt.Println(user)
-		c.Next()
+		// If there is an error, do not call next.
+		if err == nil {
+			c.Next()
+		} else {
+			fmt.Println("jwt error", err)
+			c.AbortWithError(401, err)
+		}
+
 	}
 }
 
@@ -105,19 +112,25 @@ func main() {
 	router.Use(CORSMiddleware())
 	router.Use(CsrfMiddleware())
 
-	index := router.Group("/")
-	{
-		index.GET("/", controllers.GetIndex)
-		index.GET("/gettoken")
-	}
-
 	user := router.Group("/user")
 	{
 		user.POST("/", controllers.CheckUserLogin)
 		user.POST("/login", controllers.CheckUserLogin)
 		user.POST("/register", controllers.RegisterUser)
 	}
-	// user.Use(JwtMiddleware())
+
+	index := router.Group("/")
+	{
+		index.GET("/", controllers.GetIndex)
+		index.GET("/gettoken")
+	}
+
+	router.Use(JwtMiddleware())
+
+	ping := router.Group("/ping")
+	{
+		ping.GET("/abc", controllers.GetServerList)
+	}
 
 	router.Run(":" + config.App_Config.Port)
 }

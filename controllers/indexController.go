@@ -15,7 +15,7 @@ import (
 var db *gorm.DB
 var err error
 
-type Dbms_Config_Struct struct {
+type DbmsConfigStruct struct {
 	Dbms     string `yaml:"dbms,omitempty"`
 	Host     string `yaml:"host,omitempty"`
 	Port     string `yaml:"port,omitempty"`
@@ -25,7 +25,7 @@ type Dbms_Config_Struct struct {
 }
 
 type Config struct {
-	Dbms_Config Dbms_Config_Struct `yaml:"dbms_Config,omitempty"`
+	DbmsConfig DbmsConfigStruct `yaml:"DbmsConfig,omitempty"`
 }
 
 func Main() *gorm.DB {
@@ -40,7 +40,7 @@ func Main() *gorm.DB {
 		fmt.Print(err)
 		os.Exit(1)
 	}
-	db, err = gorm.Open(config.Dbms_Config.Dbms, "host="+config.Dbms_Config.Host+" port="+config.Dbms_Config.Port+" user="+config.Dbms_Config.Username+" dbname="+config.Dbms_Config.Database+" password="+config.Dbms_Config.Password)
+	db, err = gorm.Open(config.DbmsConfig.Dbms, "host="+config.DbmsConfig.Host+" port="+config.DbmsConfig.Port+" user="+config.DbmsConfig.Username+" dbname="+config.DbmsConfig.Database+" password="+config.DbmsConfig.Password)
 
 	if err != nil {
 		panic(err)
