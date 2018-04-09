@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/bobolord/obsidian-server-backend/controllers"
 	"github.com/bobolord/obsidian-server-backend/middlewares"
+	"github.com/bobolord/obsidian-server-backend/services/utilities"
 	"github.com/gin-gonic/gin"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
@@ -34,11 +35,10 @@ func main() {
 	}
 
 	router.Use(middlewares.JwtMiddleware())
-
 	ping := router.Group("/ping")
 	{
 		ping.GET("/abc", controllers.GetServerList)
 	}
 
-	router.Run(":" + controllers.Config.AppConfig.Port)
+	router.Run(":" + utilities.Config.AppConfig.Port)
 }

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/bobolord/obsidian-server-backend/services/utilities"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 	yaml "gopkg.in/yaml.v2"
@@ -23,37 +24,14 @@ type userTable struct {
 	Password []byte `gorm:"column:password_hash"`
 }
 
-type ConfigStruct struct {
-	DbmsConfig DbmsConfigStruct `yaml:"dbms_Config,omitempty"`
-	AppConfig  AppConfigStruct  `yaml:"app_Config,omitempty"`
-}
-
-type DbmsConfigStruct struct {
-	Dbms     string `yaml:"dbms,omitempty"`
-	Host     string `yaml:"host,omitempty"`
-	Port     string `yaml:"port,omitempty"`
-	Database string `yaml:"database,omitempty"`
-	Username string `yaml:"username,omitempty"`
-	Password string `yaml:"password,omitempty"`
-}
-
-type AppConfigStruct struct {
-	AllowedOrigins  string `yaml:"allowed_origins,omitempty"`
-	Port            string `yaml:"port,omitempty"`
-	Domain          string `yaml:"domain,omitempty"`
-	CsrfTokenExpiry int    `yaml:"csrfTokenExpiry,omitempty"`
-}
-
-var Config ConfigStruct
-
 func ReadConfig() {
 	reader, err := os.Open("config.yml")
 	if err != nil {
 		log.Fatal(err)
 	}
 	buf, _ := ioutil.ReadAll(reader)
-	yaml.Unmarshal(buf, &Config)
-	if err := yaml.Unmarshal(buf, &Config); err != nil {
+	yaml.Unmarshal(buf, &utilities.Config)
+	if err := yaml.Unmarshal(buf, &utilities.Config); err != nil {
 		fmt.Print(err)
 		os.Exit(1)
 	}
@@ -88,7 +66,8 @@ func RegisterUser(c *gin.Context) {
 			c.JSON(403, gin.H{"message": "Entered email ID is already registered", "errorIn": "email"})
 			return
 		}
-
+		loginCmd.Email = "allspark2020@gmail.com"
+		utilities.NewRegistration(loginCmd.Email)
 		c.JSON(http.StatusOK, "succesfully added user")
 	}
 }
@@ -99,7 +78,7 @@ func Logout(c *gin.Context) {
 		Value:    "hello",
 		MaxAge:   -1,
 		Path:     "/",
-		Domain:   Config.AppConfig.Domain,
+		Domain:   utilities.Config.AppConfig.Domain,
 		Secure:   false,
 		HttpOnly: false})
 }

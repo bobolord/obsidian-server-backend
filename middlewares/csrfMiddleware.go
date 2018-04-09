@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/bobolord/obsidian-server-backend/controllers"
+	"github.com/bobolord/obsidian-server-backend/services/utilities"
 	"github.com/gin-gonic/gin"
 )
 
@@ -35,9 +36,9 @@ func CsrfMiddleware() gin.HandlerFunc {
 				http.SetCookie(c.Writer, &http.Cookie{
 					Name:     "XSRF-TOKEN",
 					Value:    "hello",
-					MaxAge:   controllers.Config.AppConfig.CsrfTokenExpiry,
+					MaxAge:   utilities.Config.AppConfig.CsrfTokenExpiry,
 					Path:     "/",
-					Domain:   controllers.Config.AppConfig.Domain,
+					Domain:   utilities.Config.AppConfig.Domain,
 					Secure:   false,
 					HttpOnly: false})
 			}

@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/bobolord/obsidian-server-backend/services/utilities"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 )
@@ -12,7 +13,7 @@ var db *gorm.DB
 var err error
 
 func Main() *gorm.DB {
-	db, err = gorm.Open(Config.DbmsConfig.Dbms, "host="+Config.DbmsConfig.Host+" port="+Config.DbmsConfig.Port+" user="+Config.DbmsConfig.Username+" dbname="+Config.DbmsConfig.Database+" password="+Config.DbmsConfig.Password)
+	db, err = gorm.Open(utilities.Config.DbmsConfig.Dbms, "host="+utilities.Config.DbmsConfig.Host+" port="+utilities.Config.DbmsConfig.Port+" user="+utilities.Config.DbmsConfig.Username+" dbname="+utilities.Config.DbmsConfig.Database+" password="+utilities.Config.DbmsConfig.Password)
 
 	if err != nil {
 		panic(err)
