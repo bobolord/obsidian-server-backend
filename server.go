@@ -3,18 +3,19 @@ package main
 import (
 	"github.com/bobolord/obsidian-server-backend/controllers"
 	"github.com/bobolord/obsidian-server-backend/middlewares"
+	"github.com/bobolord/obsidian-server-backend/utilities"
 	"github.com/gin-gonic/gin"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
 func main() {
-	controllers.ReadConfig()
+	utilities.ReadConfig()
 	db := controllers.Main()
 	defer db.Close()
 
 	router := gin.New()
 
-	router.Use(gin.Logger())
+	// router.Use(gin.Logger())
 	router.Use(gin.Recovery())
 	router.Use(middlewares.CORSMiddleware())
 	router.Use(middlewares.CsrfMiddleware())
@@ -40,5 +41,5 @@ func main() {
 		ping.GET("/abc", controllers.GetServerList)
 	}
 
-	router.Run(":" + controllers.Config.AppConfig.Port)
+	router.Run(":" + utilities.Config.AppConfig.Port)
 }
