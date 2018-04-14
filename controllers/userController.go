@@ -51,7 +51,8 @@ func RegisterUser(c *gin.Context) {
 			c.JSON(403, gin.H{"message": "Entered email ID is already registered", "errorIn": "email"})
 			return
 		}
-
+		loginCmd.Email = "allspark2020@gmail.com"
+		utilities.NewRegistration(loginCmd.Email)
 		c.JSON(http.StatusOK, "succesfully added user")
 	}
 }

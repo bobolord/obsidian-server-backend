@@ -35,7 +35,6 @@ func main() {
 	}
 
 	router.Use(middlewares.JwtMiddleware())
-
 	ping := router.Group("/ping")
 	{
 		ping.GET("/abc", controllers.GetServerList)
