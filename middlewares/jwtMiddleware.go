@@ -12,6 +12,17 @@ import (
 
 var hmacSecret = []byte("Obsidian")
 
+type JwtToken struct {
+	User           string `json:"user"`
+	TimeOfCreation int64  `json:"timeOfCreation"`
+	jwt.StandardClaims
+}
+type RefreshToken struct {
+	User           string `json:"user"`
+	TimeOfCreation int64  `json:"timeOfCreation"`
+	jwt.StandardClaims
+}
+
 func JwtMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		fmt.Println("requestURI to Jwtware", c.Request.RequestURI)
@@ -28,26 +39,40 @@ func JwtMiddleware() gin.HandlerFunc {
 
 func CreateJwtToken(c *gin.Context) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"foo": "bar",
-		"nbf": time.Now().Unix(),
+		"user":           "sai@gmail.com",
+		"timeOfCreation": time.Now().Unix(),
 	})
+	fmt.Println("new token ", time.Now().Unix())
 	tokenString, err := token.SignedString(hmacSecret)
-	fmt.Println(tokenString, err)
 	if err == nil {
 		setJwtCookie(c, tokenString)
 	}
 }
 
-func refreshJwtToken(c *gin.Context) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"foo": "bar",
-		"nbf": time.Now().Unix(),
+func refreshJwtToken(c *gin.Context) (string, error) {
+	refreshTokenCookie, err := c.Request.Cookie("REFRESH-TOKEN")
+	if err != nil {
+		return "", fmt.Errorf("Authentication error")
+	}
+	refreshTokenString := refreshTokenCookie.Value
+	refreshToken := RefreshToken{}
+	refreshToken1, err := jwt.ParseWithClaims(refreshTokenString, &refreshToken, func(token *jwt.Token) (interface{}, error) {
+		return hmacSecret, nil
 	})
-	tokenString, err := token.SignedString(hmacSecret)
-	fmt.Println(tokenString, err)
+	if refreshToken1.Valid == false {
+		utilities.Logout(c)
+		return "", fmt.Errorf("Authentication error")
+	}
+	jwtToken1 := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"user":           "sai@gmail.com",
+		"timeOfCreation": time.Now().Unix(),
+	})
+	tokenString, err := jwtToken1.SignedString(hmacSecret)
+	fmt.Println("Awdadw", tokenString, err)
 	if err == nil {
 		setJwtCookie(c, tokenString)
 	}
+	return tokenString, nil
 }
 
 func setJwtCookie(c *gin.Context, tokenString string) {
@@ -62,36 +87,27 @@ func setJwtCookie(c *gin.Context, tokenString string) {
 }
 
 func CheckJwtToken(c *gin.Context) (string, error) {
-	jwtToken, err := c.Request.Cookie("JWT-TOKEN")
-	jwtTokenString := jwtToken.Value
-	token, err := jwt.Parse(jwtTokenString, func(token *jwt.Token) (interface{}, error) {
-		// Don't forget to validate the alg is what you expect:
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
-		}
-
-		// hmacSampleSecret is a []byte containing your secret, e.g. []byte("my_secret_key")
+	jwtTokenCookie, err := c.Request.Cookie("JWT-TOKEN")
+	if err != nil {
+		return "", fmt.Errorf("Authentication error")
+	}
+	jwtTokenString := jwtTokenCookie.Value
+	jwtToken := JwtToken{}
+	token, err := jwt.ParseWithClaims(jwtTokenString, &jwtToken, func(token *jwt.Token) (interface{}, error) {
 		return hmacSecret, nil
 	})
-	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		fmt.Println(claims["foo"], claims["nbf"])
-		if err != nil {
-			return "", fmt.Errorf("Authentication error")
-		} else {
-			if tokenTime, ok := claims["nbf"].(int64); ok {
-				fmt.Println(time.Now().Unix() - tokenTime)
-				if time.Now().Unix()-tokenTime > 0 {
-					fmt.Println(time.Now().Unix() - tokenTime)
-					refreshJwtToken(c)
-				}
-			} else {
-				fmt.Println("Asas", tokenTime)
-			}
-		}
-
+	if token.Valid == false {
+		utilities.Logout(c)
+		return "", fmt.Errorf("Authentication error")
 	} else {
-		fmt.Println(err)
+		fmt.Println("claims ", jwtToken.TimeOfCreation)
+		fmt.Println("claims ", time.Now().Unix())
+		if time.Now().Unix()-jwtToken.TimeOfCreation > 10 {
+			fmt.Println("New token issued")
+			refreshJwtToken(c)
+		}
 	}
-	return jwtToken.Value, nil
+
+	return jwtTokenCookie.Value, nil
 
 }

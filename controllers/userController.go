@@ -56,22 +56,3 @@ func RegisterUser(c *gin.Context) {
 		c.JSON(http.StatusOK, "succesfully added user")
 	}
 }
-
-func Logout(c *gin.Context) {
-	http.SetCookie(c.Writer, &http.Cookie{
-		Name:     "XSRF-TOKEN",
-		Value:    "hello",
-		MaxAge:   -1,
-		Path:     "/",
-		Domain:   utilities.Config.AppConfig.Domain,
-		Secure:   false,
-		HttpOnly: false})
-	http.SetCookie(c.Writer, &http.Cookie{
-		Name:     "JWT-TOKEN",
-		Value:    "hello",
-		MaxAge:   -1,
-		Path:     "/",
-		Domain:   utilities.Config.AppConfig.Domain,
-		Secure:   false,
-		HttpOnly: false})
-}

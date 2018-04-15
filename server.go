@@ -25,7 +25,7 @@ func main() {
 		user.POST("/", controllers.CheckUserLogin)
 		user.POST("/login", controllers.CheckUserLogin)
 		user.POST("/register", controllers.RegisterUser)
-		user.POST("/logout", controllers.Logout)
+		user.POST("/logout", utilities.Logout)
 	}
 
 	index := router.Group("/")
