@@ -10,8 +10,9 @@ import (
 )
 
 type ConfigStruct struct {
-	DbmsConfig DbmsConfigStruct `yaml:"dbms_Config,omitempty"`
-	AppConfig  AppConfigStruct  `yaml:"app_Config,omitempty"`
+	DbmsConfig   DbmsConfigStruct   `yaml:"dbms_Config,omitempty"`
+	AppConfig    AppConfigStruct    `yaml:"app_Config,omitempty"`
+	MailerConfig MailerConfigStruct `yaml:"mailer_Config,omitempty"`
 }
 
 type DbmsConfigStruct struct {
@@ -28,6 +29,11 @@ type AppConfigStruct struct {
 	Port            string `yaml:"port,omitempty"`
 	Domain          string `yaml:"domain,omitempty"`
 	CsrfTokenExpiry int    `yaml:"csrfTokenExpiry,omitempty"`
+}
+
+type MailerConfigStruct struct {
+	SenderEmail string `yaml:"sender_email,omitempty"`
+	Password    string `yaml:"password,omitempty"`
 }
 
 var Config ConfigStruct
