@@ -32,6 +32,7 @@ func main() {
 	{
 		index.GET("/", controllers.GetIndex)
 		index.GET("/gettoken")
+		index.GET("/getmoviestatus", controllers.GetMovieStatus)
 	}
 
 	router.Use(middlewares.JwtMiddleware())

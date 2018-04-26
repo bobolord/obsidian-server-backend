@@ -22,7 +22,7 @@ func CsrfMiddleware() gin.HandlerFunc {
 				fmt.Println("x-xsrf nil", csrfToken.Value, c.Request.Header["X-Csrf-Token"][0])
 			}
 		} else {
-			if c.Request.URL.Path != "/gettoken" {
+			if c.Request.URL.Path != "/gettoken" && c.Request.URL.Path != "/getmoviestatus" {
 				fmt.Println("error with csrf")
 				c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
 				c.Abort()
