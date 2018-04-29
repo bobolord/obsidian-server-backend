@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/bobolord/obsidian-server-backend/services"
 	"github.com/gin-gonic/gin"
 )
 
@@ -31,5 +32,8 @@ func GetMovieStatus(c *gin.Context) {
 			c.JSON(http.StatusOK, gin.H{"status": movieStatus})
 		}
 	}
+}
 
+func GetMovieList(c *gin.Context) {
+	c.JSON(http.StatusOK, services.GetMovieList())
 }

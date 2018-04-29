@@ -33,6 +33,7 @@ func main() {
 		index.GET("/", controllers.GetIndex)
 		index.GET("/gettoken")
 		index.GET("/getmoviestatus", controllers.GetMovieStatus)
+		index.GET("/getmovielist", controllers.GetMovieList)
 	}
 
 	router.Use(middlewares.JwtMiddleware())
