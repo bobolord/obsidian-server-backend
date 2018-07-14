@@ -4,8 +4,8 @@ import (
 	"log"
 	"net/http"
 
+	simplejson "github.com/bitly/go-simplejson"
 	"github.com/bobolord/obsidian-server-backend/utilities"
-	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 )
 
@@ -23,6 +23,15 @@ func Main() *gorm.DB {
 	return db
 }
 
-func GetIndex(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "Hello world!"})
+func GetIndex(w http.ResponseWriter, r *http.Request) {
+	json := simplejson.New()
+	json.Set("foo", "123bar")
+
+	payload, err := json.MarshalJSON()
+	if err != nil {
+		log.Println(err)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(payload)
 }

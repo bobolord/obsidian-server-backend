@@ -7,7 +7,6 @@ import (
 
 	"github.com/bobolord/obsidian-server-backend/utilities"
 	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/gin-gonic/gin"
 )
 
 var hmacSecret = []byte("Obsidian")
@@ -23,21 +22,21 @@ type RefreshToken struct {
 	jwt.StandardClaims
 }
 
-func JwtMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		fmt.Println("requestURI to Jwtware", c.Request.RequestURI)
-		jwt, err := CheckJwtToken(c)
+func JwtMiddleware(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		fmt.Println("requestURI to Jwtware", r.RequestURI)
+		jwt, err := CheckJwtToken(w, r)
 		if err == nil {
-			c.Next()
+			return
 		} else {
 			fmt.Println("jwt error", jwt, err)
-			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
-			c.Abort()
+			http.Error(w, "Please send a request body", 405)
 		}
-	}
+	})
 }
 
-func CreateJwtToken(c *gin.Context) (string, error) {
+func CreateJwtToken(w http.ResponseWriter, r *http.Request) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user":           "sai@gmail.com",
 		"timeOfCreation": time.Now().Unix(),
@@ -47,27 +46,31 @@ func CreateJwtToken(c *gin.Context) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("Error creating token")
 	} else {
-		setJwtCookie(c, tokenString)
-		refreshTokenCookie, err := c.Request.Cookie("REFRESH-TOKEN")
+		setJwtCookie(w, r, tokenString)
+		refreshTokenCookie, err := r.Cookie("REFRESH-TOKEN")
 		if err != nil {
-			setRefreshCookie(c, tokenString)
-		}
-		refreshTokenString := refreshTokenCookie.Value
-		refreshToken := JwtToken{}
-		token, err := jwt.ParseWithClaims(refreshTokenString, &refreshToken, func(token *jwt.Token) (interface{}, error) {
-			return hmacSecret, nil
-		})
-		if token.Valid == false {
-			utilities.Logout(c)
-			return "", fmt.Errorf("Authentication error")
+			setRefreshCookie(w, r, tokenString)
 		} else {
+			refreshTokenString := refreshTokenCookie.Value
+			refreshToken := JwtToken{}
+			token, err := jwt.ParseWithClaims(refreshTokenString, &refreshToken, func(token *jwt.Token) (interface{}, error) {
+				return hmacSecret, nil
+			})
+			if err != nil {
+				return "", fmt.Errorf("Error creating token")
+			}
+			if token.Valid == false {
+				utilities.Logout(w, r)
+				return "", fmt.Errorf("Authentication error")
+			} else {
+			}
 		}
 		return tokenString, nil
 	}
 }
 
-func refreshJwtToken(c *gin.Context) (string, error) {
-	refreshTokenCookie, err := c.Request.Cookie("REFRESH-TOKEN")
+func refreshJwtToken(w http.ResponseWriter, r *http.Request) (string, error) {
+	refreshTokenCookie, err := r.Cookie("REFRESH-TOKEN")
 	if err != nil {
 		return "", fmt.Errorf("Authentication error")
 	}
@@ -77,7 +80,7 @@ func refreshJwtToken(c *gin.Context) (string, error) {
 		return hmacSecret, nil
 	})
 	if refreshToken1.Valid == false {
-		utilities.Logout(c)
+		utilities.Logout(w, r)
 		return "", fmt.Errorf("Authentication error")
 	}
 	jwtToken1 := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
@@ -87,13 +90,13 @@ func refreshJwtToken(c *gin.Context) (string, error) {
 	tokenString, err := jwtToken1.SignedString(hmacSecret)
 	fmt.Println("Awdadw", tokenString, err)
 	if err == nil {
-		setJwtCookie(c, tokenString)
+		setJwtCookie(w, r, tokenString)
 	}
 	return tokenString, nil
 }
 
-func setJwtCookie(c *gin.Context, tokenString string) {
-	http.SetCookie(c.Writer, &http.Cookie{
+func setJwtCookie(w http.ResponseWriter, r *http.Request, tokenString string) {
+	http.SetCookie(w, &http.Cookie{
 		Name:     "JWT-TOKEN",
 		Value:    tokenString,
 		MaxAge:   utilities.Config.AppConfig.CsrfTokenExpiry,
@@ -103,8 +106,8 @@ func setJwtCookie(c *gin.Context, tokenString string) {
 		HttpOnly: false})
 }
 
-func setRefreshCookie(c *gin.Context, tokenString string) {
-	http.SetCookie(c.Writer, &http.Cookie{
+func setRefreshCookie(w http.ResponseWriter, r *http.Request, tokenString string) {
+	http.SetCookie(w, &http.Cookie{
 		Name:     "REFRESH-TOKEN",
 		Value:    tokenString,
 		MaxAge:   101474836, // 3 years
@@ -114,8 +117,8 @@ func setRefreshCookie(c *gin.Context, tokenString string) {
 		HttpOnly: false})
 }
 
-func CheckJwtToken(c *gin.Context) (string, error) {
-	jwtTokenCookie, err := c.Request.Cookie("JWT-TOKEN")
+func CheckJwtToken(w http.ResponseWriter, r *http.Request) (string, error) {
+	jwtTokenCookie, err := r.Cookie("JWT-TOKEN")
 	if err != nil {
 		return "", fmt.Errorf("Authentication error")
 	}
@@ -125,17 +128,14 @@ func CheckJwtToken(c *gin.Context) (string, error) {
 		return hmacSecret, nil
 	})
 	if token.Valid == false {
-		utilities.Logout(c)
+		utilities.Logout(w, r)
 		return "", fmt.Errorf("Authentication error")
-	} else {
-		fmt.Println("claims ", jwtToken.TimeOfCreation)
-		fmt.Println("claims ", time.Now().Unix())
-		if time.Now().Unix()-jwtToken.TimeOfCreation > 10 {
-			fmt.Println("New token issued")
-			refreshJwtToken(c)
-		}
 	}
-
+	fmt.Println("claims ", jwtToken.TimeOfCreation)
+	fmt.Println("claims ", time.Now().Unix())
+	if time.Now().Unix()-jwtToken.TimeOfCreation > 10 {
+		fmt.Println("New token issued")
+		refreshJwtToken(w, r)
+	}
 	return jwtTokenCookie.Value, nil
-
 }

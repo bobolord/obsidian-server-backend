@@ -1,10 +1,18 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
+
+	simplejson "github.com/bitly/go-simplejson"
 )
 
-func GetServerList(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "Hello world!"})
+func GetServerList(w http.ResponseWriter, r *http.Request) {
+	json := simplejson.New()
+	json.Set("foo", "bar")
+	responseBody, err := json.MarshalJSON()
+	if err != nil {
+		log.Println(err)
+	}
+	w.Write(responseBody)
 }

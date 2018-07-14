@@ -1,23 +1,33 @@
 package utilities
 
 import (
+	"fmt"
 	"net/http"
-
-	"github.com/gin-gonic/gin"
 )
 
-func Logout(c *gin.Context) {
-	http.SetCookie(c.Writer, &http.Cookie{
-		Name:     "XSRF-TOKEN",
-		Value:    "hello",
+func GetDomain(w http.ResponseWriter, r *http.Request) string {
+	var domain string
+	parsedUrl := r.URL
+	if parsedUrl.Hostname() == "localhost" {
+		fmt.Println("Asas" + domain)
+		return "localhost"
+	}
+	domain = parsedUrl.Hostname()
+	return domain
+}
+
+func Logout(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "JWT-TOKEN",
+		Value:    "",
 		MaxAge:   -1,
 		Path:     "/",
 		Domain:   Config.AppConfig.Domain,
 		Secure:   false,
 		HttpOnly: false})
-	http.SetCookie(c.Writer, &http.Cookie{
-		Name:     "JWT-TOKEN",
-		Value:    "hello",
+	http.SetCookie(w, &http.Cookie{
+		Name:     "REFRESH-TOKEN",
+		Value:    "",
 		MaxAge:   -1,
 		Path:     "/",
 		Domain:   Config.AppConfig.Domain,
