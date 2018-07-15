@@ -6,7 +6,7 @@ pipeline {
 
   }
   stages {
-    stage('') {
+    stage('Go Build') {
       steps {
         sh '''node {
     def root = tool name: \'Go1.8\', type: \'go\'
