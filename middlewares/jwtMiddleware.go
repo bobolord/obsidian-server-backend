@@ -22,7 +22,7 @@ type RefreshToken struct {
 	jwt.StandardClaims
 }
 
-func JwtMiddleware(h http.Handler) http.Handler {
+func JwtMiddleware(h http.Handler) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		fmt.Println("requestURI to Jwtware", r.RequestURI)

@@ -25,13 +25,11 @@ func Main() *gorm.DB {
 
 func GetIndex(w http.ResponseWriter, r *http.Request) {
 	json := simplejson.New()
-	json.Set("foo", "123bar")
+	json.Set("foo", "index")
 
 	payload, err := json.MarshalJSON()
 	if err != nil {
 		log.Println(err)
 	}
-
-	w.Header().Set("Content-Type", "application/json")
 	w.Write(payload)
 }

@@ -1,15 +1,12 @@
 package middlewares
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/bobolord/obsidian-server-backend/utilities"
 )
 
 func CORSMiddleware(h http.Handler) http.Handler {
-	fmt.Println("asddadas")
-
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		for _, valid_origin := range utilities.Config.AppConfig.AllowedOrigins {
 			if valid_origin == r.Header.Get("Origin") {

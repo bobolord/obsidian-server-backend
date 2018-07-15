@@ -46,7 +46,7 @@ func CheckUserLogin(w http.ResponseWriter, r *http.Request) {
 		} else {
 			middlewares.CreateJwtToken(w, r)
 			w.WriteHeader(http.StatusOK)
-			// w.Write([]byte("Succesfully logged in"))
+			w.Write([]byte("Succesfully logged in"))
 		}
 	} else {
 		responseJson := simplejson.New()
@@ -56,6 +56,7 @@ func CheckUserLogin(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err)
 		}
+		fmt.Println("awdwd")
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write(jData)
 	}
