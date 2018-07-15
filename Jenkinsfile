@@ -3,7 +3,8 @@ pipeline {
   stages {
     stage('Build Go') {
       steps {
-        sh 'go build server.go'
+        sh '''cd ~/go/src/github.com/bobolord/obsidian-server-backend
+go build server.go'''
       }
     }
   }
