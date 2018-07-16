@@ -25,10 +25,10 @@ type DbmsConfigStruct struct {
 }
 
 type AppConfigStruct struct {
-	AllowedOrigins  []string `yaml:"allowed_origins,omitempty"`
-	Port            string   `yaml:"port,omitempty"`
-	Domain          string   `yaml:"domain,omitempty"`
-	CsrfTokenExpiry int      `yaml:"csrfTokenExpiry,omitempty"`
+	AllowedOrigins  string `yaml:"allowed_origins,omitempty"`
+	Port            string `yaml:"port,omitempty"`
+	Domain          string `yaml:"domain,omitempty"`
+	CsrfTokenExpiry int    `yaml:"csrfTokenExpiry,omitempty"`
 }
 
 type MailerConfigStruct struct {

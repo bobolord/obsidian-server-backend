@@ -1,27 +1,22 @@
 package middlewares
 
 import (
-	"fmt"
-	"net/http"
-
 	"github.com/bobolord/obsidian-server-backend/utilities"
+	"github.com/gin-gonic/gin"
 )
 
-func CORSMiddleware(h http.Handler) http.Handler {
-	fmt.Println("asddadas")
+func CORSMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", utilities.Config.AppConfig.AllowedOrigins)
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-Skip-Interceptor, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT")
 
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		for _, valid_origin := range utilities.Config.AppConfig.AllowedOrigins {
-			if valid_origin == r.Header.Get("Origin") {
-				w.Header().Set("Access-Control-Allow-Origin", valid_origin)
-			}
-		}
-		w.Header().Set("Access-Control-Allow-Credentials", "true")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
-		w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT")
-		if r.Method == "OPTIONS" {
-			http.Error(w, "Please send a request body", 203)
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
 			return
 		}
-	})
+		c.Next()
+
+	}
 }

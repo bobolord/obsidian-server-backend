@@ -1,13 +1,12 @@
 package controllers
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 
-	simplejson "github.com/bitly/go-simplejson"
 	"github.com/bobolord/obsidian-server-backend/middlewares"
 	"github.com/bobolord/obsidian-server-backend/utilities"
+	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -22,72 +21,38 @@ type userTable struct {
 	Password []byte `gorm:"column:password_hash"`
 }
 
-func CheckUserLogin(w http.ResponseWriter, r *http.Request) {
-	decoder := json.NewDecoder(r.Body)
+func CheckUserLogin(c *gin.Context) {
 	var loginCmd loginCommand
-	err := decoder.Decode(&loginCmd)
-	if err != nil {
-		panic(err)
-	}
-
+	c.BindJSON(&loginCmd)
 	var user userTable
 
 	if !db.Table("users").Where("email = ?", loginCmd.Email).First(&user).RecordNotFound() {
 		var success = bcrypt.CompareHashAndPassword(user.Password, []byte(loginCmd.Password))
 		if success != nil {
-			json1 := simplejson.New()
-			json1.Set("message", "Wrong password")
-			json1.Set("errorIn", "Wrong password")
-			data, err := json.Marshal(json1)
-			if err != nil {
-				panic(err)
-			}
-			http.Error(w, string(data), 400)
+			c.JSON(http.StatusUnauthorized, gin.H{"message": "Wrong password", "errorIn": "password"})
 		} else {
-			middlewares.CreateJwtToken(w, r)
-			w.WriteHeader(http.StatusOK)
-			// w.Write([]byte("Succesfully logged in"))
+			middlewares.CreateJwtToken(c)
+			c.JSON(http.StatusOK, "Succesfully logged in")
 		}
 	} else {
-		responseJson := simplejson.New()
-		responseJson.Set("message", "Entered email ID isn't registered")
-		responseJson.Set("errorIn", "email")
-		jData, err := json.Marshal(responseJson)
-		if err != nil {
-			panic(err)
-		}
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write(jData)
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Entered email ID isn't registered", "errorIn": "email"})
 	}
 }
 
-func RegisterUser(w http.ResponseWriter, r *http.Request) {
+func RegisterUser(c *gin.Context) {
 	var loginCmd loginCommand
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&loginCmd)
-	if err != nil {
-		panic(err)
-	}
+	c.BindJSON(&loginCmd)
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(loginCmd.Password), bcrypt.DefaultCost)
 	if err != nil {
 		fmt.Print("gg", err)
 	} else {
 		user := userTable{Email: loginCmd.Email, Password: hashedPassword}
 		if db.Debug().Table("users").Create(&user).Error != nil {
-			responseJson := simplejson.New()
-			responseJson.Set("message", "Entered email ID is already registered")
-			responseJson.Set("errorIn", "email")
-			jData, err := json.Marshal(responseJson)
-			if err != nil {
-				panic(err)
-			}
-			w.WriteHeader(http.StatusUnauthorized)
-			w.Write(jData)
+			c.JSON(403, gin.H{"message": "Entered email ID is already registered", "errorIn": "email"})
 			return
 		}
-		// loginCmd.Email = "allspark2020@gmail.com"
+		loginCmd.Email = "allspark2020@gmail.com"
 		utilities.NewRegistration(loginCmd.Email)
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("succesfully added user"))
+		c.JSON(http.StatusOK, "succesfully added user")
 	}
 }

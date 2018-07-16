@@ -5,36 +5,40 @@ import (
 	"net/http"
 
 	"github.com/bobolord/obsidian-server-backend/utilities"
+	"github.com/gin-gonic/gin"
 )
 
-func CsrfMiddleware(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		csrfToken, err := r.Cookie("XSRF-TOKEN")
+func CsrfMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		csrfToken, err := c.Request.Cookie("XSRF-TOKEN")
 		if err == nil {
-			if r.Header.Get("X-Csrf-Token") != "" {
-				if csrfToken.Value != r.Header.Get("X-Csrf-Token") {
-					fmt.Println("not same csrf", csrfToken.Value, r.Header.Get("X-Csrf-Token"))
-					http.Error(w, "Please send a request body", 400)
-					return
+			if c.Request.Header["X-Csrf-Token"] != nil {
+				if csrfToken.Value != c.Request.Header["X-Csrf-Token"][0] {
+					fmt.Println("not same csrf", csrfToken.Value, c.Request.Header["X-Csrf-Token"][0])
+					c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
+					c.Abort()
 				}
 			} else {
-				fmt.Println("x-xsrf nil", csrfToken.Value)
+				fmt.Println("x-xsrf nil", csrfToken.Value, c.Request.Header["X-Csrf-Token"][0])
 			}
 		} else {
-			if r.URL.Path != "/gettoken" && err == nil {
+			if c.Request.URL.Path != "/gettoken" && c.Request.URL.Path != "/getmovielist" {
 				fmt.Println("error with csrf")
-				http.Error(w, "Please send a request body", 400)
-				return
+				c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
+				c.Abort()
+
+			} else {
+				fmt.Println("true")
+				http.SetCookie(c.Writer, &http.Cookie{
+					Name:     "XSRF-TOKEN",
+					Value:    "hello",
+					MaxAge:   utilities.Config.AppConfig.CsrfTokenExpiry,
+					Path:     "/",
+					Domain:   utilities.Config.AppConfig.Domain,
+					Secure:   false,
+					HttpOnly: false})
 			}
-			cookie := http.Cookie{
-				Name:   "XSRF-TOKEN",
-				Value:  "hello",
-				MaxAge: utilities.Config.AppConfig.CsrfTokenExpiry,
-				Path:   "/",
-				// Domain:   utilities.GetDomain(w, r),
-				Secure:   false,
-				HttpOnly: false}
-			http.SetCookie(w, &cookie)
 		}
-	})
+		c.Next()
+	}
 }
